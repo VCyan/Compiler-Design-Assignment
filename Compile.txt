@@ -1,0 +1,49 @@
+#########################################################################
+Compile
+gcc listTest.c FileIO.c UserDefined.c -o listTest `pkg-config --cflags --libs glib-2.0`
+
+Run 
+./listTest nodes.txt
+#########################################################################
+
+#########################################################################
+NOTA: YA INCLUISTE A "lex.yy.c" en BISON
+bison -d LexSyn.y
+flex LexSyn.l
+gcc -O2 -o LexSyn -DYACC LexSyn.tab.c  -lfl
+./LexSyn < testFile
+
+1. bison -v calc.y
+2. flex calc.l
+3. gcc -O2 -o calc -DYACC calc.tab.c -ll
+4. ./calc
+
+To exit the calculator press control D (end of file)
+#########################################################################
+
+#########################################################################
+bison -d 7cscanner.y
+flex 7cscanner.l
+gcc -O2 -o Parser -DYACC 7cscanner.tab.c lex.yy.c -lfl
+./Parser < testFile
+
+## Compile the Syntactic Analysis: 
+
+bison -d 7cscanner.y
+mv 7cscanner.tab.c 7cscanner.y.c
+flex 7cscanner.l
+mv lex.yy.c 7cscanner.lex.c
+
+gcc -g -c 7cscanner.lex.c -o 7cscanner.lex.o
+gcc -g -c 7cscanner.y.c -o 7cscanner.y.o
+gcc -g -o Parser 7cscanner.lex.o 7cscanner.y.o -lfl
+
+
+## Analize the FILE executing:
+
+./Parser < testFile
+#########################################################################
+
+lex example.l
+yacc -d example.y
+gcc -Wall -o example y.tab.c lex.yy.c
