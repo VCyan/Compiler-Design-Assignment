@@ -1,6 +1,9 @@
-lexical_analyzer
-compiler
 LexSyn.tab.c
 LexSyn.tab.h
 LexSyn.output
 lex.yy.c
+
+**/LexSyn.tab.c
+**/LexSyn.tab.h
+**/LexSyn.output
+**/lex.yy.c
