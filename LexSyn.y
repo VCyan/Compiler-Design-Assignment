@@ -17,8 +17,8 @@ void yyerror(const char *s);
 	char *sval;
 }
 
-%token <ival> INTEGERVALUE
-%token <fval> FLOATVALUE
+%token <ival> INTEGER_VALUE
+%token <fval> FLOAT_VALUE
 %token <sval> IDENTIFIER
 
  /* Specify the attribute for those non-terminal symbols of interest */
@@ -47,8 +47,8 @@ void yyerror(const char *s);
 %start program
 /* beginning of rules section */
 %%         
-program:  
-	var_dec stmt_seq
+program:
+	var_dec stmt_seq {printf("\nThe file is correct...\n");}
 	;
 var_dec:
 	var_dec single_dec  
@@ -69,7 +69,7 @@ stmt:
 	IF exp THEN stmt
 	| IF exp THEN stmt ELSE stmt
 	| WHILE exp DO stmt
-	| variable ASSIGN simple_exp ';'
+	| variable ASSIGN simple_exp ';' {/* Edited */}
 	| READ '(' variable ')' ';'
 	| WRITE '(' exp ')' ';'
 	| block
@@ -80,7 +80,7 @@ exp:
 	simple_exp '>' simple_exp 
 	| simple_exp '<' simple_exp
 	| simple_exp '=' simple_exp
-	| '(' exp ')'
+	| '(' exp ')' {/* Added so (simple_exp) */}
 	;
 simple_exp:
 	simple_exp '+' term 
@@ -93,8 +93,8 @@ term:
 	| factor
 	;
 factor:
-	| INTEGERVALUE
-	| FLOATVALUE
+	INTEGER_VALUE
+	| FLOAT_VALUE
 	| variable
 	;
 variable:
@@ -129,7 +129,5 @@ if (argc > 1)
 
 	// lex through the input:
 	yyparse();
-	printf( "The file is correct...\n");
-
 exit(0);
 }

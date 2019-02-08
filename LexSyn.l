@@ -15,11 +15,11 @@ ID	[A-Za-z_][A-Za-z0-9_]*
   /* This is the rule definition */
 %%
 {INT}+		{
-			yylval.ival = atoi(yytext); return INTEGERVALUE;
+			yylval.ival = atoi(yytext); return INTEGER_VALUE;
 		}
 
 {FLOAT}*	{
-            		yylval.fval = atof(yytext); return FLOATVALUE;
+            		yylval.fval = atof(yytext); return FLOAT_VALUE;
            	}
   /* Reserved words: */
 int	{ return INTEGER; }
