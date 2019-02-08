@@ -44,10 +44,7 @@ write	{ return WRITE; }
 
 ","|";"|"("|")"|"{"|"}"|"+"|"-"|"*"|"/"	{ return yytext[0]; }
 
-"<"|">"|"="	{ return yytext[0]; }
-"<="	{ return LOE; }
-">="	{ return MOE; }
-"!="	{ return DIFFERENT; }
+"<"|">"|"="	{ return yytext[0]; } // "<="	{ return LOE; } ">="	{ return MOE; } "!="	{ return DIFFERENT; }
 
 ":="   { return ASSIGN; }
 

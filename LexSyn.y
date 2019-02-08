@@ -69,7 +69,7 @@ stmt:
 	IF exp THEN stmt
 	| IF exp THEN stmt ELSE stmt
 	| WHILE exp DO stmt
-	| variable ASSIGN exp ';'
+	| variable ASSIGN simple_exp ';'
 	| READ '(' variable ')' ';'
 	| WRITE '(' exp ')' ';'
 	| block
@@ -77,13 +77,10 @@ stmt:
 block:  '{' stmt_seq '}'
 	;
 exp:
-	simple_exp '<' simple_exp 
+	simple_exp '>' simple_exp 
+	| simple_exp '<' simple_exp
 	| simple_exp '=' simple_exp
-	| simple_exp '>' simple_exp 
-	| simple_exp LOE simple_exp
-	| simple_exp MOE simple_exp
-	| simple_exp DIFFERENT simple_exp
-	| simple_exp
+	| '(' exp ')'
 	;
 simple_exp:
 	simple_exp '+' term 
@@ -96,7 +93,6 @@ term:
 	| factor
 	;
 factor:
-	'(' exp ')' 
 	| INTEGERVALUE
 	| FLOATVALUE
 	| variable
