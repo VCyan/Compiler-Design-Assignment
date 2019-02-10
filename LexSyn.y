@@ -109,17 +109,12 @@ variable:
 /* This is where the flex is included */
 #include "lex.yy.c"
 
-void yyerror(string input_Message){
-	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
-	exit(-1);
-}
-
 /*************************************************************************
  *                           Main entry point                            *
  *************************************************************************/
 int main(int argc, char** argv){
 	FILE   *file;                                      // Pointer to the file
-	GHashTable * table = NULL;           // Used to test the list operations
+	// GHashTable *table = NULL;           // Used to test the list operations
 	// GList * item_p = NULL;                    // Used in the find operation
 	// node_p  aNode_p;                       // Pointer to a node in the list
 	// int     nodeValue;         // Test integer for arbitrary integer search
@@ -134,9 +129,57 @@ int main(int argc, char** argv){
 		yyin = file;
     fclose (file);	/* Close the input data file */
 	}
-
-
+	
+	table = g_hash_table_new(g_str_hash, g_str_equal);
 	// lex through the input:
 	yyparse();
 	exit(EXIT_SUCCESS);
+}
+
+void yyerror(string input_Message){
+	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
+	exit(-1);
+}
+
+symbolTable_node_p symlook(string symbol) {
+	symbolTable_node_p table_ptr;
+	string value, old_key, old_value;
+	/* Try looking up this key. */
+	// if (g_hash_table_lookup_extended (table, symbol, &old_key, &old_value))
+	// {
+	// 		/* Insert the new value */
+	// 		g_hash_table_insert (table, g_strdup (symbol), g_strdup (value));
+	// 		/* Just free the key and value */
+	// 		g_free (old_key);
+	// 		g_free (old_value);
+	// }
+	// else
+	// {
+	// 		/* Insert into our hash table it is not a duplicate. */
+	// 		g_hash_table_insert (table, g_strdup (symbol), g_strdup (value));
+	// }
+} /* symlook */
+
+/* Print Functions */
+void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
+	// //printf("Item %d %p\n", *(const int *) data, data);
+	// //node_p aNode_p = (const node_p *)data_p;
+	// //printf("%d %s\n", *(int *) (data_p->number), data_p->theString);
+
+	// //aNode_p = myList_p->data;
+	// //printf("%d %s\n",aNode_p->number, aNode_p->theString);
+	// //myList_p = myList_p->next;
+	// node_p aNode_p = (node_p) data_p;
+	// printf("%d %s\n",aNode_p->number, aNode_p->theString);
+	
+	symbolTable_node_p item = (symbolTable_node_p) value;
+    //printf("%s -> %s -> %f\n",item->name, printType(item->type), item->value);
+    // printf("%5s  %10s\n",item->name, printType(item->type));
+}
+
+void printSymbolTable(){
+    printf("\nSymbol Table: \n");
+    printf("%-15s %-15s %-15s \n","Address","Name","Value");
+
+    g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
 }
