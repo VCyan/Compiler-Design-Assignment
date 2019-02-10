@@ -1,6 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h> 
+#include "table.h"
+
 // Declare stuff from Flex that Bison needs to know about:
 extern int yylex();
 extern int yyparse();
@@ -8,7 +10,8 @@ extern FILE *yyin;
 // extern int line_num;
 extern int yylineno;
 
-void yyerror(const char *s);
+/* Function definitions */
+void yyerror(string input_Message);
 %}
 
 // Symbols.
@@ -106,19 +109,22 @@ variable:
 /* This is where the flex is included */
 #include "lex.yy.c"
 
-void yyerror(const char *s)
-{
-fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ s);
-exit(-1);
+void yyerror(string input_Message){
+	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
+	exit(-1);
 }
-  /* This is the main program */
-int main(argc, argv)
-int argc;
-char** argv;
-{
-if (argc > 1)
-{
-		FILE *file;
+
+/*************************************************************************
+ *                           Main entry point                            *
+ *************************************************************************/
+int main(int argc, char** argv){
+	FILE   *file;                                      // Pointer to the file
+	GHashTable * table = NULL;           // Used to test the list operations
+	// GList * item_p = NULL;                    // Used in the find operation
+	// node_p  aNode_p;                       // Pointer to a node in the list
+	// int     nodeValue;         // Test integer for arbitrary integer search
+
+	if (argc > 1)	{
 		file = fopen(argv[1], "r");
 		if (!file)
 		{
@@ -126,9 +132,11 @@ if (argc > 1)
 				exit(1);
 		}
 		yyin = file;
-}
+    fclose (file);	/* Close the input data file */
+	}
+
 
 	// lex through the input:
 	yyparse();
-exit(0);
+	exit(EXIT_SUCCESS);
 }
