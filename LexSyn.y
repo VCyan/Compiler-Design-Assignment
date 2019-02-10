@@ -19,7 +19,7 @@ void yyerror(string input_Message);
 	int ival;
 	float fval;
 	string sval;
-  symbolTable_node_p symbol;
+  symtab_node_p symp;
 }
 
 %token <sval> IDENTIFIER
@@ -43,10 +43,10 @@ void yyerror(string input_Message);
 %token DIFFERENT
 
 // %type <fval> expression term factor
-%type <symbol> simple_exp;
-%type <symbol> term;
-%type <symbol> factor;
-%type <symbol> variable;
+%type <symp> simple_exp;
+%type <symp> term;
+%type <symp> factor;
+%type <symp> variable;
 
 %right '='
 %left '+' '-'
@@ -60,7 +60,7 @@ program:
 	;
 var_dec:
 	var_dec single_dec  
-	| /* epsilon */
+	| %empty /* epsilon */
 	;
 single_dec:  
 	type IDENTIFIER ';'
@@ -71,7 +71,7 @@ type:
 	;
 stmt_seq:  
 	stmt_seq stmt
-	| /* epsilon */
+	| %empty /* epsilon */
 	;
 stmt:
 	IF exp THEN stmt
@@ -107,7 +107,7 @@ factor:
 	;
 variable:
 	IDENTIFIER 	{
-									$$ = symlook($1);
+									$$ = symlook($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
 							}
 	;
 %%             /* beginning of subroutines section */
@@ -147,7 +147,7 @@ void yyerror(string input_Message){
 	exit(-1);
 }
 
-symbolTable_node_p newSymbol(string symbol){
+symtab_node_p newSymbol(string symbol){
 	// // 1. Creation of a new pointer to node & malloc (size)
 	// node_p aNode_p = (node_p) malloc(sizeof(myData)); // Note: In C the casting is not neccesary, but it should be casted.
 	// // 2. Set values
@@ -156,7 +156,7 @@ symbolTable_node_p newSymbol(string symbol){
 	// // 3. Return pointer
 	// return aNode_p;
 	// 1. Creation of a new pointer to node & malloc (size)
-	symbolTable_node_p new_entry = (symbolTable_node_p) malloc(sizeof(symbolTable_node));
+	symtab_node_p new_entry = (symtab_node_p) malloc(sizeof(symbolTable_node));
 	// 2. Set values
 	new_entry->name_value = strdup(symbol);
 	new_entry->num_value.INTEGER_VALUE = 0;
@@ -169,8 +169,8 @@ symbolTable_node_p newSymbol(string symbol){
 	}
 }
 
-symbolTable_node_p symlook(string symbol) {
-	symbolTable_node_p table_ptr;
+symtab_node_p symlook(string symbol) {
+	symtab_node_p table_ptr;
 	string value, old_key, old_value;
 	/* Try looking up this key. */
 	// if (g_hash_table_lookup_extended (table, symbol, &old_key, &old_value))
@@ -197,7 +197,7 @@ void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 // 	node_p aNode_p = (node_p) data_p;
 // 	printf("%d %s\n",aNode_p->number, aNode_p->theString);
 	
-	symbolTable_node_p item = (symbolTable_node_p) value;
+	symtab_node_p item = (symtab_node_p) value;
     //printf("%s -> %s -> %f\n",item->name, printType(item->type), item->value);
     // printf("%5s  %10s\n",item->name, printType(item->type));
 }

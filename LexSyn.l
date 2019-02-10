@@ -37,7 +37,6 @@ write	{ return WRITE; }
 {ID}	{
 		// We have to strdup because we can't rely on yytext not changing underneath us:
     // yylval.symp = symlook(yytext);
-    // yylval.str = yytext;
 		yylval.sval = strdup(yytext);
 		return IDENTIFIER;
 	}

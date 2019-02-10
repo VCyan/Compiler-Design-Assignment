@@ -44,17 +44,17 @@ union number_value
  *
  */
 struct symtab {
-  string name_value;				/**< theString: The name of the variable, though it will not necessarily be a variable */
+  string name_value;				/**< theString: The name of the variable, The name is just the string */
   union number_value num_value; /**< number_value: The value of the variable either int or float */ 
 } symbolTable_node;
 
 /**
- * @typedef symbolTable_node_p
+ * @typedef symtab_node_p
  *
  * @brief Declares a pointer type of Symbol-Table-defined data structure
  *
  */
-typedef struct symtab * symbolTable_node_p;  /**< Simplify declaration of ptr to node */
+typedef struct symtab * symtab_node_p;  /**< Simplify declaration of ptr to node */
 
 /**
  * @GHashTable
@@ -65,7 +65,7 @@ typedef struct symtab * symbolTable_node_p;  /**< Simplify declaration of ptr to
 GHashTable *table = NULL;
 
 
-symbolTable_node_p newSymbol(string s);
+symtab_node_p newSymbol(string s);
 
 /**
 @brief 
@@ -74,10 +74,10 @@ symbolTable_node_p newSymbol(string s);
  * 
  * @param s : The key name to look in the symbol table
  * 
- * @return symbolTable_node_p : Pointer to the element in the hash table that matches the value.
+ * @return symtab_node_p : Pointer to the element in the hash table that matches the value.
  *  NULL if no match was found.
  */
-symbolTable_node_p symlook(string s);
+symtab_node_p symlook(string s);
 
 /**
  * @brief fdsfsdf fsd sf sd
