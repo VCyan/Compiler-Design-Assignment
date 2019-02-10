@@ -43,6 +43,8 @@ void yyerror(string input_Message);
 %token DIFFERENT
 
 // %type <fval> expression term factor
+%type <ival> type
+%type <symp> exp;
 %type <symp> simple_exp;
 %type <symp> term;
 %type <symp> factor;
@@ -56,18 +58,27 @@ void yyerror(string input_Message);
 /* beginning of rules section */
 %%         
 program:
-	var_dec stmt_seq {printf("\nThe file is correct...\n");}
+	var_dec stmt_seq { printf("\nThe file is correct...\n"); }
 	;
 var_dec:
 	var_dec single_dec  
 	| %empty /* epsilon */
 	;
-single_dec:  
-	type IDENTIFIER ';'
+single_dec:
+	type IDENTIFIER ';' {
+		// 1. Create a new pointer
+		symtab_node_p myNewSymbol = newSymbol($2);
+		// 2. Set member num_type
+		myNewSymbol->num_type = $1;
+	}
 	;
 type:
-	INTEGER
-	| FLOAT
+	INTEGER { // You are an int if your type is 0;
+		$$ = 1; // For testing purpose every type is a double ("float")
+	}
+	| FLOAT { // You are a float if your type is 1;
+		$$ = 1;
+	}
 	;
 stmt_seq:  
 	stmt_seq stmt
@@ -77,7 +88,14 @@ stmt:
 	IF exp THEN stmt
 	| IF exp THEN stmt ELSE stmt
 	| WHILE exp DO stmt
-	| variable ASSIGN simple_exp ';' {/* Edited */}
+	| variable ASSIGN simple_exp ';' {/* Edited */
+		// if type is NULL, you haven't declared the variable
+		if (!$1->num_type){
+				yyerror("Variable not declared: ");
+				exit(1);
+		} /* else {
+		} */
+	}
 	| READ '(' variable ')' ';'
 	| WRITE '(' exp ')' ';'
 	| block
@@ -88,27 +106,48 @@ exp:
 	simple_exp '>' simple_exp 
 	| simple_exp '<' simple_exp
 	| simple_exp '=' simple_exp
-	| '(' exp ')' {/* Added so (simple_exp) */}
+	| '(' exp ')' {
+		/* Added so (simple_exp) */
+		$$ = $2;
+	}
 	;
 simple_exp:
-	simple_exp '+' term 
-	| simple_exp '-' term 
+	simple_exp '+' term {
+		$$ = $1 + $3;
+	}
+	| simple_exp '-' term {
+		$$ = $1 - $3;
+	}
 	| term
 	;
 term:
-	term '*' factor  
-	| term '/' factor
-	| factor
+	term '*' factor {
+		$$ = $1 * $3;
+	}
+	| term '/' factor {
+		if($3 == 0.0) yyerror("divide by zero");
+		else $$ = $1 / $3;
+	}
+	| factor {
+		$$ = $1;
+	}
 	;
 factor:
-	INTEGER_VALUE
-	| FLOAT_VALUE
-	| variable
+	INTEGER_VALUE {
+		$$ = $1;
+	}
+	| FLOAT_VALUE {
+		$$ = $1;
+	}
+	| variable {
+		$$ = $1->num_value;
+	}
 	;
 variable:
-	IDENTIFIER 	{
-									$$ = symlook($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
-							}
+	IDENTIFIER 	
+	{
+			$$ = symlook($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
+	}
 	;
 %%             /* beginning of subroutines section */
 
@@ -143,28 +182,22 @@ int main(int argc, char** argv){
 }
 
 void yyerror(string input_Message){
-	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
+	fprintf(stderr, "Error: in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
 	exit(-1);
 }
 
 symtab_node_p newSymbol(string symbol){
-	// // 1. Creation of a new pointer to node & malloc (size)
-	// node_p aNode_p = (node_p) malloc(sizeof(myData)); // Note: In C the casting is not neccesary, but it should be casted.
-	// // 2. Set values
-	// aNode_p->number    = theNumber;
-	// aNode_p->theString = theString;
-	// // 3. Return pointer
-	// return aNode_p;
 	// 1. Creation of a new pointer to node & malloc (size)
-	symtab_node_p new_entry = (symtab_node_p) malloc(sizeof(symbolTable_node));
-	// 2. Set values
-	new_entry->name_value = strdup(symbol);
-	new_entry->num_value.INTEGER_VALUE = 0;
+	symtab_node_p myNewSymbol = (symtab_node_p) malloc(sizeof(symbolTable_node));
+	// 2. Set values and default ones.
+	myNewSymbol->name_value = strdup(symbol);
+	myNewSymbol->num_value.INTEGER_VALUE = NULL;
+	myNewSymbol->num_type = NULL;
 	// 3. Return pointer
-	if (g_hash_table_insert(table, new_entry->name_value, new_entry)){
-			return new_entry;
+	if (g_hash_table_insert(table, myNewSymbol->name_value, myNewSymbol)){
+			return myNewSymbol;
 	}else {
-			printf("ERROR: at inserting to hash table");
+			printf("Error: at inserting to hash table");
 			exit(1);
 	}
 }

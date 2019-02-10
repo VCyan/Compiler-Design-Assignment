@@ -46,6 +46,7 @@ union number_value
 struct symtab {
   string name_value;				/**< theString: The name of the variable, The name is just the string */
   union number_value num_value; /**< number_value: The value of the variable either int or float */ 
+	unsigned short int num_type;
 } symbolTable_node;
 
 /**
