@@ -52,7 +52,7 @@ write	{ return WRITE; }
 
 \/\*(((\*[^/])?)|[^*])*\*\/   //Do nothing // printf( " TYPE: Multiline Comment;\tVALUE: %s\n", yytext );
 
-[\n]	{ ++line_num; }
+[\n]	{  yylineno++; /* ++line_num; */ }
 
 [ \t\r\f]+          /* eat up whitespace */
 

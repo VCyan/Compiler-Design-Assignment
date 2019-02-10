@@ -5,7 +5,8 @@
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
-extern int line_num;
+// extern int line_num;
+extern int yylineno;
 
 void yyerror(const char *s);
 %}
@@ -40,7 +41,7 @@ void yyerror(const char *s);
 %token MOE
 %token DIFFERENT
 
-// %right '='
+%right '='
 %left '+' '-'
 %left '*' '/'
 
@@ -107,7 +108,7 @@ variable:
 
 void yyerror(const char *s)
 {
-fprintf(stderr, "line %d: %s\n:", line_num, s);
+fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ s);
 exit(-1);
 }
   /* This is the main program */

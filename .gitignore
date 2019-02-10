@@ -1,8 +1,10 @@
+LexSyn
 LexSyn.tab.c
 LexSyn.tab.h
 LexSyn.output
 lex.yy.c
 
+**/LexSyn
 **/LexSyn.tab.c
 **/LexSyn.tab.h
 **/LexSyn.output
