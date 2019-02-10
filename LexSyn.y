@@ -44,10 +44,10 @@ void yyerror(string input_Message);
 
 // %type <fval> expression term factor
 %type <ival> type
-%type <symp> exp;
-%type <symp> simple_exp;
-%type <symp> term;
-%type <symp> factor;
+%type <fval> exp;
+%type <fval> simple_exp;
+%type <fval> term;
+%type <fval> factor;
 %type <symp> variable;
 
 %right '='
@@ -61,7 +61,7 @@ program:
 	var_dec stmt_seq { printf("\nThe file is correct...\n"); }
 	;
 var_dec:
-	var_dec single_dec  
+	var_dec single_dec
 	| %empty /* epsilon */
 	;
 single_dec:
@@ -90,11 +90,12 @@ stmt:
 	| WHILE exp DO stmt
 	| variable ASSIGN simple_exp ';' {/* Edited */
 		// if type is NULL, you haven't declared the variable
-		if (!$1->num_type){
-				yyerror("Variable not declared: ");
-				exit(1);
-		} /* else {
-		} */
+		// if (!$1->num_type){
+		// 		yyerror("Variable not declared: ");
+		// 		exit(1);
+		// } else {
+		// 	$1->num_value.FLOAT_VALUE = $3;
+		// }
 	}
 	| READ '(' variable ')' ';'
 	| WRITE '(' exp ')' ';'
@@ -108,28 +109,28 @@ exp:
 	| simple_exp '=' simple_exp
 	| '(' exp ')' {
 		/* Added so (simple_exp) */
-		$$ = $2;
+		// $$ = $2;
 	}
 	;
 simple_exp:
 	simple_exp '+' term {
-		$$ = $1 + $3;
+		// $$ = $1 + $3;
 	}
 	| simple_exp '-' term {
-		$$ = $1 - $3;
+		// $$ = $1 - $3;
 	}
 	| term
 	;
 term:
 	term '*' factor {
-		$$ = $1 * $3;
+		// $$ = $1 * $3;
 	}
 	| term '/' factor {
-		if($3 == 0.0) yyerror("divide by zero");
-		else $$ = $1 / $3;
+		// if($3 == 0.0) yyerror("divide by zero");
+		// else $$ = $1 / $3;
 	}
 	| factor {
-		$$ = $1;
+		// $$ = $1;
 	}
 	;
 factor:
@@ -140,7 +141,7 @@ factor:
 		$$ = $1;
 	}
 	| variable {
-		$$ = $1->num_value;
+		// $$ = $1->num_value.FLOAT_VALUE;
 	}
 	;
 variable:
@@ -174,10 +175,11 @@ int main(int argc, char** argv){
 		yyin = file;
     fclose (file);	/* Close the input data file */
 	}
-	
+	printf("Hash-Table creation: ");
 	table = g_hash_table_new(g_str_hash, g_str_equal);
 	// lex through the input:
 	yyparse();
+  printSymbolTable();
 	exit(EXIT_SUCCESS);
 }
 
@@ -191,8 +193,8 @@ symtab_node_p newSymbol(string symbol){
 	symtab_node_p myNewSymbol = (symtab_node_p) malloc(sizeof(symbolTable_node));
 	// 2. Set values and default ones.
 	myNewSymbol->name_value = strdup(symbol);
-	myNewSymbol->num_value.INTEGER_VALUE = NULL;
-	myNewSymbol->num_type = NULL;
+	myNewSymbol->num_value.FLOAT_VALUE = 1;
+	myNewSymbol->num_type = 1;
 	// 3. Return pointer
 	if (g_hash_table_insert(table, myNewSymbol->name_value, myNewSymbol)){
 			return myNewSymbol;
@@ -206,38 +208,28 @@ symtab_node_p symlook(string symbol) {
 	symtab_node_p table_ptr;
 	string value, old_key, old_value;
 	/* Try looking up this key. */
-	// if (g_hash_table_lookup_extended (table, symbol, &old_key, &old_value))
-	// {
-	// 		/* Insert the new value */
-	// 		g_hash_table_insert (table, g_strdup (symbol), g_strdup (value));
-	// 		/* Just free the key and value */
-	// 		g_free (old_key);
-	// 		g_free (old_value);
-	// }
-	// else
-	// {
-	// 		/* Insert into our hash table it is not a duplicate. */
-	// 		g_hash_table_insert (table, g_strdup (symbol), g_strdup (value));
-	// }
+	symtab_entry_p res = g_hash_table_lookup(table, symbol);
+    if (res == NULL){
+        symtab_entry_p new_entry = malloc(sizeof(symtab_entry_));
+        new_entry->name_value = strdup(symbol);
+        new_entry->num_type = -1;
+        return new_entry;
+    }
+    else {
+        return res;
+    }
 } /* symlook */
 
 /* Print Functions */
 void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
-// int PrintItem (const void *data_p){
-// 	//aNode_p = myList_p->data;
-// 	//printf("%d %s\n",aNode_p->number, aNode_p->theString);
-// 	//myList_p = myList_p->next;
-// 	node_p aNode_p = (node_p) data_p;
-// 	printf("%d %s\n",aNode_p->number, aNode_p->theString);
-	
-	symtab_node_p item = (symtab_node_p) value;
-    //printf("%s -> %s -> %f\n",item->name, printType(item->type), item->value);
-    // printf("%5s  %10s\n",item->name, printType(item->type));
+	// 1.  Get the node
+	symtab_node_p aNode = (symtab_node_p) value;
+	// 2. Print the values
+	printf("%-10d %-10s %-10d \n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE);
 }
 
 void printSymbolTable(){
-    printf("\nSymbol Table: \n");
-    printf("%-15s %-15s %-15s \n","Address","Name","Value");
-
+    printf("### SYMBOL TABLE: \n");
+    printf("%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
     g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
 }

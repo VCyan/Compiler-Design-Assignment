@@ -31,7 +31,7 @@ typedef char * string;
 union number_value
 {
 	int INTEGER_VALUE;
-	double FLOAT_VALUE;
+	float FLOAT_VALUE;
 };
 
 /**
