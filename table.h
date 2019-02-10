@@ -30,8 +30,8 @@ typedef char * string;
  */
 union number_value
 {
-	int intf;
-	double fds;
+	int INTEGER_VALUE;
+	double FLOAT_VALUE;
 };
 
 /**
@@ -65,7 +65,7 @@ typedef struct symtab * symbolTable_node_p;  /**< Simplify declaration of ptr to
 GHashTable *table = NULL;
 
 
-symbolTable_node_p symbAdd(string s);
+symbolTable_node_p newSymbol(string s);
 
 /**
 @brief 

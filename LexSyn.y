@@ -18,15 +18,13 @@ void yyerror(string input_Message);
 %union {
 	int ival;
 	float fval;
-	char *sval;
+	string sval;
+  symbolTable_node_p symbol;
 }
 
+%token <sval> IDENTIFIER
 %token <ival> INTEGER_VALUE
 %token <fval> FLOAT_VALUE
-%token <sval> IDENTIFIER
-
- /* Specify the attribute for those non-terminal symbols of interest */
-// %type <fval> expression term factor
 
 %token INTEGER
 %token FLOAT
@@ -43,6 +41,12 @@ void yyerror(string input_Message);
 %token LOE
 %token MOE
 %token DIFFERENT
+
+// %type <fval> expression term factor
+%type <symbol> simple_exp;
+%type <symbol> term;
+%type <symbol> factor;
+%type <symbol> variable;
 
 %right '='
 %left '+' '-'
@@ -102,7 +106,9 @@ factor:
 	| variable
 	;
 variable:
-	IDENTIFIER
+	IDENTIFIER 	{
+									$$ = symlook($1);
+							}
 	;
 %%             /* beginning of subroutines section */
 
@@ -141,6 +147,28 @@ void yyerror(string input_Message){
 	exit(-1);
 }
 
+symbolTable_node_p newSymbol(string symbol){
+	// // 1. Creation of a new pointer to node & malloc (size)
+	// node_p aNode_p = (node_p) malloc(sizeof(myData)); // Note: In C the casting is not neccesary, but it should be casted.
+	// // 2. Set values
+	// aNode_p->number    = theNumber;
+	// aNode_p->theString = theString;
+	// // 3. Return pointer
+	// return aNode_p;
+	// 1. Creation of a new pointer to node & malloc (size)
+	symbolTable_node_p new_entry = (symbolTable_node_p) malloc(sizeof(symbolTable_node));
+	// 2. Set values
+	new_entry->name_value = strdup(symbol);
+	new_entry->num_value.INTEGER_VALUE = 0;
+	// 3. Return pointer
+	if (g_hash_table_insert(table, new_entry->name_value, new_entry)){
+			return new_entry;
+	}else {
+			printf("ERROR: at inserting to hash table");
+			exit(1);
+	}
+}
+
 symbolTable_node_p symlook(string symbol) {
 	symbolTable_node_p table_ptr;
 	string value, old_key, old_value;
@@ -162,15 +190,12 @@ symbolTable_node_p symlook(string symbol) {
 
 /* Print Functions */
 void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
-	// //printf("Item %d %p\n", *(const int *) data, data);
-	// //node_p aNode_p = (const node_p *)data_p;
-	// //printf("%d %s\n", *(int *) (data_p->number), data_p->theString);
-
-	// //aNode_p = myList_p->data;
-	// //printf("%d %s\n",aNode_p->number, aNode_p->theString);
-	// //myList_p = myList_p->next;
-	// node_p aNode_p = (node_p) data_p;
-	// printf("%d %s\n",aNode_p->number, aNode_p->theString);
+// int PrintItem (const void *data_p){
+// 	//aNode_p = myList_p->data;
+// 	//printf("%d %s\n",aNode_p->number, aNode_p->theString);
+// 	//myList_p = myList_p->next;
+// 	node_p aNode_p = (node_p) data_p;
+// 	printf("%d %s\n",aNode_p->number, aNode_p->theString);
 	
 	symbolTable_node_p item = (symbolTable_node_p) value;
     //printf("%s -> %s -> %f\n",item->name, printType(item->type), item->value);
