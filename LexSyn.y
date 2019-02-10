@@ -50,9 +50,9 @@ void yyerror(string input_Message);
 %type <fval> factor;
 %type <symp> variable;
 
-%right '='
-%left '+' '-'
-%left '*' '/'
+// %right '='
+// %left '+' '-'
+// %left '*' '/'
 
 %start program
 /* beginning of rules section */
@@ -90,12 +90,12 @@ stmt:
 	| WHILE exp DO stmt
 	| variable ASSIGN simple_exp ';' {/* Edited */
 		// if type is NULL, you haven't declared the variable
-		// if (!$1->num_type){
-		// 		yyerror("Variable not declared: ");
-		// 		exit(1);
-		// } else {
-		// 	$1->num_value.FLOAT_VALUE = $3;
-		// }
+		if (!$1->num_type){
+				yyerror("Variable not declared: ");
+				exit(1);
+		} else {
+			$1->num_value.FLOAT_VALUE = $3;
+		}
 	}
 	| READ '(' variable ')' ';'
 	| WRITE '(' exp ')' ';'
@@ -109,28 +109,28 @@ exp:
 	| simple_exp '=' simple_exp
 	| '(' exp ')' {
 		/* Added so (simple_exp) */
-		// $$ = $2;
+		$$ = $2;
 	}
 	;
 simple_exp:
 	simple_exp '+' term {
-		// $$ = $1 + $3;
+		$$ = $1 + $3;
 	}
 	| simple_exp '-' term {
-		// $$ = $1 - $3;
+		$$ = $1 - $3;
 	}
 	| term
 	;
 term:
 	term '*' factor {
-		// $$ = $1 * $3;
+		$$ = $1 * $3;
 	}
 	| term '/' factor {
-		// if($3 == 0.0) yyerror("divide by zero");
-		// else $$ = $1 / $3;
+		if($3 == 0.0) yyerror("divide by zero");
+		else $$ = $1 / $3;
 	}
 	| factor {
-		// $$ = $1;
+		$$ = $1;
 	}
 	;
 factor:
@@ -138,10 +138,11 @@ factor:
 		$$ = $1;
 	}
 	| FLOAT_VALUE {
+		printf("\n>>> %f",$1);
 		$$ = $1;
 	}
 	| variable {
-		// $$ = $1->num_value.FLOAT_VALUE;
+		$$ = $1->num_value.FLOAT_VALUE;
 	}
 	;
 variable:
@@ -193,13 +194,13 @@ symtab_node_p newSymbol(string symbol){
 	symtab_node_p myNewSymbol = (symtab_node_p) malloc(sizeof(symbolTable_node));
 	// 2. Set values and default ones.
 	myNewSymbol->name_value = strdup(symbol);
-	myNewSymbol->num_value.FLOAT_VALUE = 1;
-	myNewSymbol->num_type = 1;
+	// myNewSymbol->num_value.FLOAT_VALUE = -1;
+	// myNewSymbol->num_type = -1;
 	// 3. Return pointer
 	if (g_hash_table_insert(table, myNewSymbol->name_value, myNewSymbol)){
 			return myNewSymbol;
 	}else {
-			printf("Error: at inserting to hash table");
+			printf("Error: Something destroy the Hash Table?");
 			exit(1);
 	}
 }
@@ -208,9 +209,9 @@ symtab_node_p symlook(string symbol) {
 	symtab_node_p table_ptr;
 	string value, old_key, old_value;
 	/* Try looking up this key. */
-	symtab_entry_p res = g_hash_table_lookup(table, symbol);
+	symtab_node_p res = g_hash_table_lookup(table, symbol);
     if (res == NULL){
-        symtab_entry_p new_entry = malloc(sizeof(symtab_entry_));
+        symtab_node_p new_entry = malloc(sizeof(symbolTable_node));
         new_entry->name_value = strdup(symbol);
         new_entry->num_type = -1;
         return new_entry;
@@ -225,7 +226,7 @@ void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 	// 1.  Get the node
 	symtab_node_p aNode = (symtab_node_p) value;
 	// 2. Print the values
-	printf("%-10d %-10s %-10d \n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE);
+	printf("%-10d %-10s %-10ff \n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE);
 }
 
 void printSymbolTable(){
