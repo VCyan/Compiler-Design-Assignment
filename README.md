@@ -39,7 +39,7 @@ In order to run the program do:
 
 ## Built With
 
-* Flex and Bison
+* [Flex](https://www.gnu.org/software/flex/) and [Bison](https://www.gnu.org/software/bison/manual/html_node/index.html#SEC_Contents)
 * [Glib](https://developer.gnome.org/glib/) - a utility library that can simplify programming in C, especially for projects involving the languages GNOME and GTK+
 
 ## License

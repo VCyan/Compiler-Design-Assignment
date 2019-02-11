@@ -7,6 +7,6 @@ float theSecond;
 
 /* There is no "main" program, just blocks */
 {
-	myFirst := 123.0 + 10.0;
-	theSecond := myFirst * 12.0;
+	myFirst := 134.0 + 10.0;
+	theSecond := myFirst / 12.0;
 }

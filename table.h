@@ -78,7 +78,7 @@ symtab_node_p newSymbol(string s);
  * @return symtab_node_p : Pointer to the element in the hash table that matches the value.
  *  NULL if no match was found.
  */
-symtab_node_p symlook(string s);
+symtab_node_p lookSymbol(string s);
 
 /**
  * @brief fdsfsdf fsd sf sd
