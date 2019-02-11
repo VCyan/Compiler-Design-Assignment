@@ -69,7 +69,7 @@ var_dec:
 	;
 single_dec:
 	type IDENTIFIER ';' {
-		// 1. Create a new pointer
+		// 1. Create a new symbol pointer in Symbol Table
 		symtab_node_p myNewSymbol = newSymbol($2);
 		// 2. Set member num_type
 		myNewSymbol->num_type = $1;
@@ -141,8 +141,7 @@ factor:
 	INTEGER_VALUE {
 		$$ = $1;
 	}
-	| FLOAT_VALUE {
-		// printf("\n>>> %f",$1);
+	| FLOAT_VALUE { // printf("FLOAT VALUE: %f",$1);
 		$$ = $1;
 	}
 	| variable {
@@ -155,7 +154,8 @@ variable:
 			$$ = lookSymbol($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
 	}
 	;
-%%             /* beginning of subroutines section */
+%%
+/* beginning of subroutines section */
 
 /* This is where the flex is included */
 #include "lex.yy.c"
@@ -208,19 +208,20 @@ symtab_node_p newSymbol(string symbolKey){
 			printf("Error: Something destroy the Hash Table?");
 			exit(1);
 	}
-}
+} /* newSymbol */
 
 symtab_node_p lookSymbol(string symbolKey) {
 	/* Try looking up this key. */
 	symtab_node_p mySymbol = g_hash_table_lookup(table, symbolKey);
-    if (mySymbol == NULL){ /* if symbolKey is not found in Symbol Table */
-        symtab_node_p myNewSymbol = malloc(sizeof(symbolTable_node));
-        myNewSymbol->name_value = strdup(symbolKey);
-        myNewSymbol->num_type = -1;
-        return myNewSymbol;
+    if (!mySymbol){ /* if symbolKey is not NULL  */
+      /* then it was found in Symbol Table */
+			return mySymbol;
     }
-    else { /* symbolKey is in Symbol Table */
-        return mySymbol;
+    else { /* else, create a new symbol pointer */
+			symtab_node_p myNewSymbol = (symtab_node_p) malloc(sizeof(symbolTable_node));
+				myNewSymbol->name_value = strdup(symbolKey);
+				myNewSymbol->num_type = -1;
+			return myNewSymbol;
     }
 } /* lookSymbol */
 
