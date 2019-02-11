@@ -69,20 +69,18 @@ GHashTable *table = NULL;
 symtab_node_p newSymbol(string s);
 
 /**
-@brief 
- * This function looks for a name in the symbol table, if it is
- * not there it store it in the next available space.
- * 
- * @param s : The key name to look in the symbol table
- * 
- * @return symtab_node_p : Pointer to the element in the hash table that matches the value.
- *  NULL if no match was found.
- */
+	* @brief This function looks for a name in the symbol table, if it is
+	* not there it store it in the next available space.
+	* 
+	* @param s : The key name to look in the symbol table
+	* 
+	* @return symtab_node_p : Pointer to the element in the hash table that matches the value.
+	*  NULL if no match was found.
+	*/
 symtab_node_p lookSymbol(string s);
 
 /**
- * @brief fdsfsdf fsd sf sd
- * df sdf sdf
+ * @brief 
  * 
  */
 void printSymbolTable();
