@@ -213,7 +213,7 @@ symtab_node_p newSymbol(string symbolKey){
 symtab_node_p lookSymbol(string symbolKey) {
 	/* Try looking up this key. */
 	symtab_node_p mySymbol = g_hash_table_lookup(table, symbolKey);
-    if (!mySymbol){ /* if symbolKey is not NULL  */
+    if (mySymbol != NULL){ /* if symbolKey is not NULL  */
       /* then it was found in Symbol Table */
 			return mySymbol;
     }
@@ -235,6 +235,6 @@ void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 
 void printSymbolTable(){
     printf("### SYMBOL TABLE: \n");
-    printf("%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
+    printf("\t%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
     g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
 }
