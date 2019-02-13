@@ -18,7 +18,9 @@ sudo apt-get install libgtk-3-dev
 ### How to Compile
 To compile, run the script:
 
-		```./Makefile.sh```
+```
+./Makefile.sh
+```
 
 or perform manually the actions inside the Makefile.sh
 
@@ -30,11 +32,15 @@ gcc -O2 -o LexSyn -DYACC LexSyn.tab.c `pkg-config --cflags --libs glib-2.0` -lfl
 
 In order to run the program do:
 
-		```./LexSyn < "input file name here"```
+```
+./LexSyn < "input file name here"
+```
 
 	- Example:
 
-		```./LexSyn < input.c```
+```
+./LexSyn < input.c
+```
 
 
 ## Built With
