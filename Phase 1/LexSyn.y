@@ -61,7 +61,7 @@ char error_str[128];
 /* beginning of rules section */
 %%         
 program:
-	var_dec stmt_seq { printf("\n### The FILE is correct...\n"); }
+	var_dec stmt_seq { /* printf("\n### The FILE is correct...\n"); */ }
 	;
 var_dec:
 	var_dec single_dec
@@ -96,7 +96,6 @@ stmt:
 		if ($1->num_type == -1){
 			sprintf(error_str, "Variable not declared: %s", $1->name_value);
 			yyerror(error_str);
-			exit(1);
 		} else {
 			$1->num_value.FLOAT_VALUE = $3;
 		}
@@ -189,9 +188,9 @@ int main(int argc, char** argv){
 }
 
 void yyerror(char const * input_Message){
-	yylineno++;
-	fprintf(stderr, "Error: in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
-	exit(-1);
+	// yylineno++;
+	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
+	// exit(-1);
 }
 
 symtab_node_p newSymbol(string symbolKey){
@@ -230,11 +229,11 @@ void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 	// 1.  Get the node
 	symtab_node_p aNode = (symtab_node_p) value;
 	// 2. Print the values
-	printf("%-10d %-10s %-10.2f\n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE);
+	printf("\t%-10d %-10s %-10.2f\n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE);
 }
 
 void printSymbolTable(){
-    printf("### SYMBOL TABLE: \n");
+    printf("\n\t####### SYMBOL TABLE #######\n");
     printf("\t%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
     g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
 }

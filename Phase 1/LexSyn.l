@@ -55,6 +55,6 @@ write	{ return WRITE; }
 
 [ \t\r\f]+          /* eat up whitespace */
 
-.           printf( " Unrecognized character: %s\n", yytext );
+.           printf( "Error in line %d: Unrecognized character: %s\n", yylineno, yytext );
 
 %%
