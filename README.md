@@ -36,7 +36,7 @@ In order to run the program do:
 ./LexSyn < "input file name here"
 ```
 
-	- Example:
+Example:
 
 ```
 ./LexSyn < input.c
