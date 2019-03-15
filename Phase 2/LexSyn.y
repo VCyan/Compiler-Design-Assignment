@@ -48,10 +48,10 @@ char error_str[128];
 // %type of Terminals
 // %type <fval> expression term factor
 %type <ival> type
-%type <fval> exp;
-%type <fval> simple_exp;
-%type <fval> term;
-%type <fval> factor;
+%type <symp> exp;
+%type <symp> simple_exp;
+%type <symp> term;
+%type <symp> factor;
 %type <symp> variable;
 
 // %right '='
