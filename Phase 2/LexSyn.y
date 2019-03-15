@@ -62,7 +62,7 @@ char error_str[128];
 /* beginning of rules section */
 %%         
 program:
-	var_dec stmt_seq { /* printf("\n### The FILE is correct...\n"); */ }
+	var_dec stmt_seq { printf("\n### The FILE is correct...\n"); }
 	;
 var_dec:
 	var_dec single_dec
@@ -77,11 +77,11 @@ single_dec:
 	}
 	;
 type:
-	INTEGER { // You are an int if your type is 0;
-		$$ = 0;
+	INTEGER { // You are an int if your type is 0 = TYPE_INTEGER;
+		$$ = TYPE_INTEGER;
 	}
-	| FLOAT { // You are a float if your type is 1;
-		$$ = 1;
+	| FLOAT { // You are a float if your type is 1 = TYPE_FLOAT;
+		$$ = TYPE_FLOAT;
 	}
 	;
 stmt_seq:  
@@ -157,6 +157,7 @@ factor:
 	}
 	| variable {
 		$$ = $1->num_value.FLOAT_VALUE_SAVED;
+		// $$ = $1;
 	}
 	;
 variable:
@@ -202,7 +203,7 @@ int main(int argc, char** argv){
 void yyerror(char const * input_Message){
 	// yylineno++;
 	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
-	// exit(-1);
+	exit(-1);
 }
 
 symtab_node_p newSymbol(string symbolKey){
