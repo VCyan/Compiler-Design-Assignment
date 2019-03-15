@@ -14,6 +14,7 @@ extern int yylineno;
 
 /* Function definitions */
 void yyerror(char const * input_Message);
+void warning(char const * input_Message);
 char error_str[128];
 %}
 
@@ -48,10 +49,14 @@ char error_str[128];
 // %type of Terminals
 // %type <fval> expression term factor
 %type <ival> type
-%type <symp> exp;
-%type <symp> simple_exp;
-%type <symp> term;
-%type <symp> factor;
+%type <fval> exp;
+%type <fval> simple_exp;
+%type <fval> term;
+%type <fval> factor;
+// %type <symp> exp;
+// %type <symp> simple_exp;
+// %type <symp> term;
+// %type <symp> factor;
 %type <symp> variable;
 
 // %right '='
@@ -187,7 +192,7 @@ int main(int argc, char** argv){
 		if (!file)
 		{
 				fprintf(stderr, "Could not open %s\n", argv[1]);
-				exit(1);
+				exit(EXIT_FAILURE);
 		}
 		yyin = file;
     fclose (file);	/* Close the input data file */
@@ -203,7 +208,12 @@ int main(int argc, char** argv){
 void yyerror(char const * input_Message){
 	// yylineno++;
 	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
-	exit(-1);
+	exit(EXIT_FAILURE);
+}
+
+void warning(char const * input_Message){
+	fprintf(stderr, "Warning in line %d: %s\n:",  yylineno, input_Message);
+	// exit(EXIT_FAILURE);
 }
 
 symtab_node_p newSymbol(string symbolKey){
@@ -218,7 +228,7 @@ symtab_node_p newSymbol(string symbolKey){
 			return myNewSymbol;
 	}else {
 			printf("Error: Something destroy the Hash Table?");
-			exit(1);
+			exit(EXIT_FAILURE);
 	}
 } /* newSymbol */
 
