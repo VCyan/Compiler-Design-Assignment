@@ -5,7 +5,7 @@
  * the Glib library. See the Glib documentation at:
  * https://developer.gnome.org/glib/stable/glib-Hash-Tables.html
  *
- * @version 0.1
+ * @version 0.2
  * @date 2019-02-09
  * 
  * @copyright Copyright (c) 2019
@@ -23,14 +23,16 @@
  * 
  */
 typedef char * string;
+
 /**
- * @brief Used to identify the type of the symbol entry and later expressions.
+ * @brief Used to identify the type of the symbol entry and the type of later expressions.
  * 
  */
-enum type
+enum type_enum
 {
 	TYPE_INTEGER, TYPE_FLOAT, TYPE_EMPTY, TYPE_ERROR
 };
+
 /**
  * @brief Used to identify the value that a a variable will hold.
  * 
@@ -51,9 +53,9 @@ union number_value
  *
  */
 struct symtab {
-  string name_value;				/**< theString: The name of the variable, The name is just the string */
+  string name_value;			 /**< theString: The name of the variable, The name is just the string */
   union number_value num_value; /**< number_value: The value of the variable either int or float */ 
-	int num_type;
+	int num_type;											 /**< num_type: The type of the variable either int or float */
 } symbolTable_node;
 
 /**
@@ -87,7 +89,16 @@ symtab_node_p newSymbol(string s);
 symtab_node_p lookSymbol(string s);
 
 /**
- * @brief 
+ *
+ * @brief Print all the elements of the Hash Table, based on a user-defined
+ * function that handles the actual printing of each data element.
+ *
+ * @b printSymbolTable will print all the elements of @p table. It calls
+ * the user-defined function @c printSymbolItem which handles the format of
+ * the data portion of the items in the Hash Table.
  * 
  */
 void printSymbolTable();
+
+
+void equivalenceTest(symtab_node_p src01, symtab_node_p src02, symtab_node_p result03);

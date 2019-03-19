@@ -16,6 +16,7 @@ extern int yylineno;
 void yyerror(char const * input_Message);
 void warning(char const * input_Message);
 char error_str[128];
+char constant_str[30]; // As it is a toy, I will keep constants with a length of 30.
 %}
 
 // Symbols.
@@ -49,14 +50,14 @@ char error_str[128];
 // %type of Terminals
 // %type <fval> expression term factor
 %type <ival> type
-%type <fval> exp;
-%type <fval> simple_exp;
-%type <fval> term;
-%type <fval> factor;
-// %type <symp> exp;
-// %type <symp> simple_exp;
-// %type <symp> term;
-// %type <symp> factor;
+// %type <fval> exp;
+// %type <fval> simple_exp;
+// %type <fval> term;
+// %type <fval> factor;
+%type <symp> exp;
+%type <symp> simple_exp;
+%type <symp> term;
+%type <symp> factor;
 %type <symp> variable;
 
 // %right '='
@@ -77,7 +78,7 @@ single_dec:
 	type IDENTIFIER ';' {
 		// 1. Create a new symbol pointer in Symbol Table
 		symtab_node_p myNewSymbol = newSymbol($2);
-		// 2. Set member num_type
+		// 2. Set member num_type, either TYPE_INTEGER or TYPE_FLOAT
 		myNewSymbol->num_type = $1;
 	}
 	;
@@ -103,18 +104,14 @@ stmt:
 			sprintf(error_str, "Variable not declared: %s", $1->name_value);
 			yyerror(error_str);
 		} else {
-			$1->num_value.FLOAT_VALUE_SAVED = $3;
-			// // if type is int,
-			// if ($1->type == 0){
-			// 	// if type is float
-			// 	if ($3->type == 1){
-			// 		printf("Warning at line %d: assigning float to %s, precision will be lost\n", yylineno, $1->name);
-			// 	}
-			// } else {
-			// 	if ($3->type == INT){
-			// 		printf("Warning at line %d: assigning integer to %s, conversion will be done\n", yylineno, $1->name);
-			// 	}
-			// }
+			// $1->num_value.FLOAT_VALUE_SAVED = $3;
+			// gen();
+			// if variable's type is INTEGER AND constant's type is FLOAT
+			if (($1->num_type == TYPE_INTEGER) && ($3->num_type == TYPE_FLOAT)){
+				warning("Implicit Type Coercion: Assigment makes integer from float");
+			} else if(($1->num_type == TYPE_FLOAT) && ($3->num_type == TYPE_INTEGER)){
+				warning("Implicit Type Coercion: Assigment makes float from integer");
+			}
 		}
 	}
 	| READ '(' variable ')' ';'
@@ -134,20 +131,30 @@ exp:
 	;
 simple_exp:
 	simple_exp '+' term {
-		$$ = $1 + $3;
+		// $$ = $1 + $3;
 	}
 	| simple_exp '-' term {
-		$$ = $1 - $3;
+		// $$ = $1 - $3;
 	}
 	| term
 	;
 term:
 	term '*' factor {
-		$$ = $1 * $3;
+		// $$ = $1 * $3;
 	}
 	| term '/' factor {
-		if($3 == (0.0)||(0)) yyerror("Divide by zero");
-		else $$ = $1 / $3;
+		// if($3->num_value.INT == (0.0)||(0)) yyerror("Division by zero");
+		// if(0){} // Expecting to implement the above comment
+		// else {
+		// 	// $$ = $1 / $3;
+		// 	// 1. Create a new symbol pointer
+		// 	symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
+		// 	// 2. Declare type based on previous Expressions
+		// 	equivalenceTest(op, $1, $3, myNewConstant);
+		// 	// 3. Perform operation
+		// 	myNewConstant->num_value.FLOAT_VALUE_SAVED = $1->num_value.FLOAT_VALUE_SAVED / $3->num_value;
+		// 	$$ = myNewConstant;
+		// }
 	}
 	| factor {
 		$$ = $1;
@@ -155,20 +162,34 @@ term:
 	;
 factor:
 	INTEGER_VALUE {
-		$$ = $1;
+		// $$ = $1;
+		sprintf(constant_str, "%d", $1);
+		// 1. Create a new constant pointer in Symbol Table
+		symtab_node_p myNewConstant = lookSymbol(constant_str);
+		// 2. Set member num_type
+		myNewConstant->num_type = TYPE_INTEGER;
+		// 3. Set member number value
+		myNewConstant->num_value.INTEGER_VALUE_SAVED = $1;
+		// 4. Return pointer
+		$$ = myNewConstant;
 	}
 	| FLOAT_VALUE { // printf("FLOAT VALUE: %f",$1);
-		$$ = $1;
+		// $$ = $1;
+		sprintf(constant_str, "%f", $1);
+		symtab_node_p myNewConstant = lookSymbol(constant_str);
+		myNewConstant->num_type = TYPE_FLOAT;
+		myNewConstant->num_value.FLOAT_VALUE_SAVED = $1;
+		$$ = myNewConstant;
 	}
 	| variable {
-		$$ = $1->num_value.FLOAT_VALUE_SAVED;
-		// $$ = $1;
+		// $$ = $1->num_value.FLOAT_VALUE_SAVED;
+		$$ = $1;
 	}
 	;
 variable:
 	IDENTIFIER 	
 	{
-			$$ = lookSymbol($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
+		$$ = lookSymbol($1); /* This avoids the warning: type clash on default action: <symb> != <sval>*/
 	}
 	;
 %%
@@ -207,12 +228,12 @@ int main(int argc, char** argv){
 
 void yyerror(char const * input_Message){
 	// yylineno++;
-	fprintf(stderr, "Error in line %d: %s\n:",  yylineno,/* line_num, */ input_Message);
+	fprintf(stderr, "Error in line %d: %s\n",  yylineno,/* line_num, */ input_Message);
 	exit(EXIT_FAILURE);
 }
 
 void warning(char const * input_Message){
-	fprintf(stderr, "Warning in line %d: %s\n:",  yylineno, input_Message);
+	fprintf(stderr, "Warning in line %d: %s\n",  yylineno, input_Message);
 	// exit(EXIT_FAILURE);
 }
 
@@ -239,7 +260,8 @@ symtab_node_p lookSymbol(string symbolKey) {
       /* then it was found in Symbol Table */
 			return mySymbol;
     }
-    else { /* else, create a new symbol pointer */
+    else { /* else */
+			// 1. Create a new symbol pointer 
 			symtab_node_p myNewSymbol = (symtab_node_p) malloc(sizeof(symbolTable_node));
 				myNewSymbol->name_value = strdup(symbolKey);
 				myNewSymbol->num_type = TYPE_EMPTY; // like -1 = empty
@@ -252,11 +274,34 @@ void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 	// 1.  Get the node
 	symtab_node_p aNode = (symtab_node_p) value;
 	// 2. Print the values
-	printf("\t%-10d %-10s %-10.2f\n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE_SAVED);
-}
+	if(aNode->num_type == TYPE_INTEGER)	printf("\t%-10d %-10s %-10d\n",aNode->num_type,aNode->name_value,aNode->num_value.INTEGER_VALUE_SAVED);
+	else printf("\t%-10d %-10s %-10.2f\n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE_SAVED);
+	return; 
+}/* printSymbolItem */
 
 void printSymbolTable(){
-    printf("\n\t####### SYMBOL TABLE #######\n");
-    printf("\t%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
-    g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
-}
+	printf("\n\t####### SYMBOL TABLE #######\n");
+	printf("\t%-10s %-10s %-10s \n","TYPE","NAME","VALUE");
+	g_hash_table_foreach(table, (GHFunc)printSymbolItem, NULL);
+	return;
+}/* printSymbolTable */
+
+void equivalenceTest(symtab_node_p src01, symtab_node_p src02, symtab_node_p result03){
+	if ((src01->num_type == TYPE_INTEGER) && (src02->num_type == TYPE_INTEGER)){
+		result03->num_type = TYPE_INTEGER;
+	}
+	else if ((src01->num_type == TYPE_INTEGER) && (src02->num_type == TYPE_FLOAT)){
+		yyerror("Error in numbers");
+		result03->num_type = TYPE_FLOAT;
+	}
+	else if ((src01->num_type == TYPE_FLOAT) && (src02->num_type == TYPE_INTEGER)){
+		yyerror("Error in numbers");
+		result03->num_type = TYPE_FLOAT;
+	}
+	else if ((src01->num_type == TYPE_FLOAT) && (src02->num_type == TYPE_FLOAT)){
+		result03->num_type = TYPE_FLOAT;
+	} else {
+		yyerror("The shit number");
+	}
+	return;
+}/* equivalenceTest */
