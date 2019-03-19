@@ -106,12 +106,7 @@ stmt:
 		} else {
 			// $1->num_value.FLOAT_VALUE_SAVED = $3;
 			// gen();
-			// if variable's type is INTEGER AND constant's type is FLOAT
-			if (($1->num_type == TYPE_INTEGER) && ($3->num_type == TYPE_FLOAT)){
-				warning("Implicit Type Coercion: Assigment makes integer from float");
-			} else if(($1->num_type == TYPE_FLOAT) && ($3->num_type == TYPE_INTEGER)){
-				warning("Implicit Type Coercion: Assigment makes float from integer");
-			}
+			conversionTest($1, $3);
 		}
 	}
 	| READ '(' variable ')' ';'
@@ -127,34 +122,46 @@ exp:
 	| '(' exp ')' {
 		/* Added so (simple_exp) */
 		$$ = $2;
+		
 	}
 	;
 simple_exp:
 	simple_exp '+' term {
 		// $$ = $1 + $3;
+		symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
+		equivalenceTest(OP_SUM, $1, $3, myNewConstant);
+		$$ = myNewConstant;
 	}
 	| simple_exp '-' term {
 		// $$ = $1 - $3;
+		symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
+		equivalenceTest(OP_SUB, $1, $3, myNewConstant);
+		$$ = myNewConstant;
 	}
 	| term
 	;
 term:
 	term '*' factor {
 		// $$ = $1 * $3;
+		// 1. Create a new symbol pointer
+		symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
+		// 2. Declare type based on previous Expressions
+		equivalenceTest(OP_MUL, $1, $3, myNewConstant);
+		$$ = myNewConstant;
 	}
 	| term '/' factor {
 		// if($3->num_value.INT == (0.0)||(0)) yyerror("Division by zero");
-		// if(0){} // Expecting to implement the above comment
-		// else {
-		// 	// $$ = $1 / $3;
-		// 	// 1. Create a new symbol pointer
-		// 	symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
-		// 	// 2. Declare type based on previous Expressions
-		// 	equivalenceTest(op, $1, $3, myNewConstant);
-		// 	// 3. Perform operation
-		// 	myNewConstant->num_value.FLOAT_VALUE_SAVED = $1->num_value.FLOAT_VALUE_SAVED / $3->num_value;
-		// 	$$ = myNewConstant;
-		// }
+		if(0){} // Expecting to implement the above comment
+		else {
+			// $$ = $1 / $3;
+			// 1. Create a new symbol pointer
+			symtab_node_p myNewConstant = (symtab_node_p) malloc(sizeof(symbolTable_node));
+			// 2. Declare type based on previous Expressions
+			equivalenceTest(OP_DIV, $1, $3, myNewConstant);
+			// 3. Perform operation
+			// myNewConstant->num_value.FLOAT_VALUE_SAVED = $1->num_value.FLOAT_VALUE_SAVED / $3->num_value;
+			$$ = myNewConstant;
+		}
 	}
 	| factor {
 		$$ = $1;
@@ -164,6 +171,7 @@ factor:
 	INTEGER_VALUE {
 		// $$ = $1;
 		sprintf(constant_str, "%d", $1);
+		printf("%s\n",constant_str);
 		// 1. Create a new constant pointer in Symbol Table
 		symtab_node_p myNewConstant = lookSymbol(constant_str);
 		// 2. Set member num_type
@@ -176,6 +184,7 @@ factor:
 	| FLOAT_VALUE { // printf("FLOAT VALUE: %f",$1);
 		// $$ = $1;
 		sprintf(constant_str, "%f", $1);
+		printf("%s\n",constant_str);
 		symtab_node_p myNewConstant = lookSymbol(constant_str);
 		myNewConstant->num_type = TYPE_FLOAT;
 		myNewConstant->num_value.FLOAT_VALUE_SAVED = $1;
@@ -286,20 +295,96 @@ void printSymbolTable(){
 	return;
 }/* printSymbolTable */
 
-void equivalenceTest(symtab_node_p src01, symtab_node_p src02, symtab_node_p result03){
-	if ((src01->num_type == TYPE_INTEGER) && (src02->num_type == TYPE_INTEGER)){
-		result03->num_type = TYPE_INTEGER;
+void conversionTest(symtab_node_p arg1, symtab_node_p arg2){
+	// if variable's type is INTEGER AND constant's type is FLOAT
+	if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_FLOAT)){
+		warning("Implicit Type Coercion: Assigment makes integer from float");
+	} else if((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_INTEGER)){
+		warning("Implicit Type Coercion: Assigment makes float from integer");
 	}
-	else if ((src01->num_type == TYPE_INTEGER) && (src02->num_type == TYPE_FLOAT)){
-		yyerror("Error in numbers");
-		result03->num_type = TYPE_FLOAT;
-	}
-	else if ((src01->num_type == TYPE_FLOAT) && (src02->num_type == TYPE_INTEGER)){
-		yyerror("Error in numbers");
-		result03->num_type = TYPE_FLOAT;
-	}
-	else if ((src01->num_type == TYPE_FLOAT) && (src02->num_type == TYPE_FLOAT)){
-		result03->num_type = TYPE_FLOAT;
+	return;
+}
+void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node_p result){
+	if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_INTEGER)){
+		result->num_type = TYPE_INTEGER;
+		switch (op) {
+			case OP_SUM:
+				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED + arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_SUB:
+				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED - arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_MUL:
+				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_DIV:
+				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+
+			default:
+				yyerror("Integer x Integer failed ?");
+				break;
+		}
+	}	else if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_FLOAT)){
+		// result->num_type = TYPE_INTEGER;
+		switch (op) {
+			case OP_SUM:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED + arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_SUB:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED - arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_MUL:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_DIV:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+
+			default:
+				yyerror("Integer x Float failed ?");
+				break;
+		}
+	}	else if ((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_INTEGER)){
+		// result->num_type = TYPE_INTEGER;
+		switch (op) {
+			case OP_SUM:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED + arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_SUB:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED - arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_MUL:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+			case OP_DIV:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / arg2->num_value.INTEGER_VALUE_SAVED;
+				break;
+
+			default:
+				yyerror("Float x Integer failed ?");
+				break;
+		}
+	}	else if ((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_FLOAT)){
+		result->num_type = TYPE_FLOAT;
+		switch (op) {
+			case OP_SUM:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED + arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_SUB:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED - arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_MUL:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+			case OP_DIV:
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
+				break;
+
+			default:
+				yyerror("Integer x Float failed ?");
+				break;
+		}
 	} else {
 		yyerror("The shit number");
 	}

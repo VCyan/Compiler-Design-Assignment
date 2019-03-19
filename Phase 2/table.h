@@ -34,6 +34,15 @@ enum type_enum
 };
 
 /**
+ * @brief Used to identify the type of operation to perform in later expressions.
+ * 
+ */
+enum type_operation
+{
+	OP_SUM, OP_SUB, OP_MUL, OP_DIV
+};
+
+/**
  * @brief Used to identify the value that a a variable will hold.
  * 
  */
@@ -101,4 +110,7 @@ symtab_node_p lookSymbol(string s);
 void printSymbolTable();
 
 
-void equivalenceTest(symtab_node_p src01, symtab_node_p src02, symtab_node_p result03);
+void conversionTest(symtab_node_p arg1, symtab_node_p arg2);
+
+
+void equivalenceTest(int operation, symtab_node_p arg1, symtab_node_p arg2, symtab_node_p result03);

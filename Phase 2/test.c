@@ -6,6 +6,7 @@ int main()
 	int a = 3.2554;
 	float b = 3;
 	int c = 5.6/3;
-	printf("Hola mundo %d\n", c);
+	int d = 3/6;
+	printf("Hola mundo %d\n", d);
 	return 0;
 }
