@@ -255,7 +255,7 @@ int main(int argc, char** argv){
 void yyerrorCritical(char const * input_Message){
 	// yylineno++;
 	fprintf(stderr, "CRITICAL ERROR: in line %d: %s\n", yylineno,/* line_num, */ input_Message);
-	printf("Stopping Compilation...\n");
+	printf("Stopping Compilation\n");
 	exit(EXIT_FAILURE);
 }
 /**
