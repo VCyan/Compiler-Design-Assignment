@@ -1,8 +1,9 @@
 %{
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
+#include <stdbool.h>
 #include "table.h"
-// An explanation more detailed about an Error if FLEX found one.
+// An explanation more detailed about an Error if FLEX "Lexical Analyzer" found one.
 #define YYERROR_VERBOSE
 
 // Declare stuff from Flex that Bison needs to know about:
@@ -13,10 +14,14 @@ extern FILE *yyin;
 extern int yylineno;
 
 /* Function definitions */
+void yyerrorCritical(char const * input_Message);
 void yyerror(char const * input_Message);
 void warning(char const * input_Message);
-char error_str[128];
-char constant_str[30]; // As it is a toy, I will keep constants with a length of 30.
+
+/* Constants */
+char error_str[256];
+char constant_str[30]; // As it is a toy, I will keep number constants with a length of 30.
+bool boolean_use = false;
 %}
 
 // Symbols.
@@ -68,7 +73,7 @@ char constant_str[30]; // As it is a toy, I will keep constants with a length of
 /* beginning of rules section */
 %%         
 program:
-	var_dec stmt_seq { printf("\n### The FILE is correct...\n"); }
+	var_dec stmt_seq { /* printf("\n\t%-10s\n", "### The FILE is correct..."); */ }
 	;
 var_dec:
 	var_dec single_dec
@@ -100,13 +105,17 @@ stmt:
 	| WHILE exp DO stmt
 	| variable ASSIGN simple_exp ';' {/* Edited */
 		// if type is NULL, you haven't declared the variable
-		if ($1->num_type == TYPE_EMPTY){
+		if ($1->num_type == TYPE_EMPTY) {
 			sprintf(error_str, "Variable not declared: %s", $1->name_value);
-			yyerror(error_str);
+			yyerrorCritical(error_str);
 		} else {
 			// $1->num_value.FLOAT_VALUE_SAVED = $3;
 			// gen();
+			// boolean_use = conversionTest($1, $3);
 			conversionTest($1, $3);
+			// if(boolean_use) {
+			// 	$1->num_value.FLOAT_VALUE_SAVED = $3;
+			// }
 		}
 	}
 	| READ '(' variable ')' ';'
@@ -122,7 +131,6 @@ exp:
 	| '(' exp ')' {
 		/* Added so (simple_exp) */
 		$$ = $2;
-		
 	}
 	;
 simple_exp:
@@ -165,13 +173,20 @@ term:
 	}
 	| factor {
 		$$ = $1;
+		/* if($1->num_type == TYPE_INTEGER){
+		sprintf(constant_str, "%d", $1->num_value.INTEGER_VALUE_SAVED);
+		printf("Factor: %s\n",constant_str);
+		} else {
+		sprintf(constant_str, "%f", $1->num_value.FLOAT_VALUE_SAVED);
+		printf("Factor: %s\n",constant_str);
+		} */
 	}
 	;
 factor:
 	INTEGER_VALUE {
 		// $$ = $1;
-		sprintf(constant_str, "%d", $1);
-		printf("%s\n",constant_str);
+		/* sprintf(constant_str, "%d", $1);
+		printf("%s\n",constant_str); */
 		// 1. Create a new constant pointer in Symbol Table
 		symtab_node_p myNewConstant = lookSymbol(constant_str);
 		// 2. Set member num_type
@@ -183,8 +198,8 @@ factor:
 	}
 	| FLOAT_VALUE { // printf("FLOAT VALUE: %f",$1);
 		// $$ = $1;
-		sprintf(constant_str, "%f", $1);
-		printf("%s\n",constant_str);
+		/* sprintf(constant_str, "%f", $1);
+		printf("%s\n",constant_str); */
 		symtab_node_p myNewConstant = lookSymbol(constant_str);
 		myNewConstant->num_type = TYPE_FLOAT;
 		myNewConstant->num_value.FLOAT_VALUE_SAVED = $1;
@@ -232,18 +247,24 @@ int main(int argc, char** argv){
 	// lex through the input:
 	yyparse();
   printSymbolTable();
+
 	exit(EXIT_SUCCESS);
 }
 
-void yyerror(char const * input_Message){
+/* Error & Warning Functions */
+void yyerrorCritical(char const * input_Message){
 	// yylineno++;
-	fprintf(stderr, "Error in line %d: %s\n",  yylineno,/* line_num, */ input_Message);
+	fprintf(stderr, "CRITICAL ERROR: in line %d: %s\n", yylineno,/* line_num, */ input_Message);
+	printf("Stopping Compilation...\n");
 	exit(EXIT_FAILURE);
 }
 
+void yyerror(char const * input_Message){
+	fprintf(stderr, "ERROR: in line %d: %s\n", yylineno, input_Message);
+}
+
 void warning(char const * input_Message){
-	fprintf(stderr, "Warning in line %d: %s\n",  yylineno, input_Message);
-	// exit(EXIT_FAILURE);
+	fprintf(stderr, "WARNING: in line %d: %s\n", yylineno, input_Message);
 }
 
 symtab_node_p newSymbol(string symbolKey){
@@ -257,8 +278,7 @@ symtab_node_p newSymbol(string symbolKey){
 	if (g_hash_table_insert(table, myNewSymbol->name_value, myNewSymbol)){
 			return myNewSymbol;
 	}else {
-			printf("Error: Something destroy the Hash Table?");
-			exit(EXIT_FAILURE);
+			yyerrorCritical("Something destroy the Hash Table?");
 	}
 } /* newSymbol */
 
@@ -279,12 +299,13 @@ symtab_node_p lookSymbol(string symbolKey) {
 } /* lookSymbol */
 
 /* Print Functions */
+
 void printSymbolItem(gpointer key, gpointer value, gpointer user_data){
 	// 1.  Get the node
 	symtab_node_p aNode = (symtab_node_p) value;
 	// 2. Print the values
-	if(aNode->num_type == TYPE_INTEGER)	printf("\t%-10d %-10s %-10d\n",aNode->num_type,aNode->name_value,aNode->num_value.INTEGER_VALUE_SAVED);
-	else printf("\t%-10d %-10s %-10.2f\n",aNode->num_type,aNode->name_value,aNode->num_value.FLOAT_VALUE_SAVED);
+	if(aNode->num_type == TYPE_INTEGER)	printf("\t%-10s %-10s %-10d\n","int",aNode->name_value,aNode->num_value.INTEGER_VALUE_SAVED);
+	else printf("\t%-10s %-10s %-10.2f\n","float",aNode->name_value,aNode->num_value.FLOAT_VALUE_SAVED);
 	return; 
 }/* printSymbolItem */
 
@@ -295,15 +316,34 @@ void printSymbolTable(){
 	return;
 }/* printSymbolTable */
 
+
+
+/* Operation Functions*/
+
 void conversionTest(symtab_node_p arg1, symtab_node_p arg2){
 	// if variable's type is INTEGER AND constant's type is FLOAT
-	if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_FLOAT)){
-		warning("Implicit Type Coercion: Assigment makes integer from float");
+	if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_INTEGER)){
+			arg1->num_value.INTEGER_VALUE_SAVED = arg2->num_value.INTEGER_VALUE_SAVED;
+			// return true;
 	} else if((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_INTEGER)){
-		warning("Implicit Type Coercion: Assigment makes float from integer");
+			sprintf(error_str, "Implicit Type Coercion: Assigment makes float from integer: At float %s with the int assigment value of %d", arg1->name_value, arg2->num_value.INTEGER_VALUE_SAVED);
+			warning(error_str);
+			arg1->num_value.FLOAT_VALUE_SAVED = (float)arg2->num_value.INTEGER_VALUE_SAVED;
+			// return false;
+	} else if((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_FLOAT)){
+			sprintf(error_str, "Implicit Type Coercion: Assigment makes integer from float: At int %s with the float assigment value of %.2f", arg1->name_value, arg2->num_value.FLOAT_VALUE_SAVED);
+			yyerror(error_str);
+			arg1->num_value.INTEGER_VALUE_SAVED = (int)arg2->num_value.FLOAT_VALUE_SAVED;
+			// return false;
+	} else if((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_FLOAT)) {
+			arg1->num_value.FLOAT_VALUE_SAVED = arg2->num_value.FLOAT_VALUE_SAVED;
+			// return true;
+	} else {
+		yyerrorCritical("A shit assigment...");
 	}
 	return;
 }
+
 void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node_p result){
 	if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_INTEGER)){
 		result->num_type = TYPE_INTEGER;
@@ -322,47 +362,49 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				break;
 
 			default:
-				yyerror("Integer x Integer failed ?");
+				yyerrorCritical("Integer x Integer failed ?");
 				break;
 		}
 	}	else if ((arg1->num_type == TYPE_INTEGER) && (arg2->num_type == TYPE_FLOAT)){
-		// result->num_type = TYPE_INTEGER;
+		warning("Implicit Type Coercion: Operation between integer and float will result in float");
+		result->num_type = TYPE_FLOAT;
 		switch (op) {
 			case OP_SUM:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED + arg2->num_value.FLOAT_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED + arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 			case OP_SUB:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED - arg2->num_value.FLOAT_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED - arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 			case OP_MUL:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 
 			default:
-				yyerror("Integer x Float failed ?");
+				yyerrorCritical("Integer x Float failed ?");
 				break;
 		}
 	}	else if ((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_INTEGER)){
-		// result->num_type = TYPE_INTEGER;
+		result->num_type = TYPE_FLOAT;		
+		warning("Implicit Type Coercion: Operation between float and integer will result in float");
 		switch (op) {
 			case OP_SUM:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED + arg2->num_value.INTEGER_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED + (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 			case OP_SUB:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED - arg2->num_value.INTEGER_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED - (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 			case OP_MUL:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * arg2->num_value.INTEGER_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / arg2->num_value.INTEGER_VALUE_SAVED;
+				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 
 			default:
-				yyerror("Float x Integer failed ?");
+				yyerrorCritical("Float x Integer failed ?");
 				break;
 		}
 	}	else if ((arg1->num_type == TYPE_FLOAT) && (arg2->num_type == TYPE_FLOAT)){
@@ -382,11 +424,11 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				break;
 
 			default:
-				yyerror("Integer x Float failed ?");
+				yyerrorCritical("Integer x Float failed ?");
 				break;
 		}
 	} else {
-		yyerror("The shit number");
+		yyerrorCritical("A shit number");
 	}
 	return;
 }/* equivalenceTest */
