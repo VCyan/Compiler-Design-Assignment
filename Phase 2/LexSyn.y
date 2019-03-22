@@ -31,7 +31,7 @@ bool boolean_use = false;
 	string sval;
   symtab_node_p symp;
 }
-
+// %token of Terminals
 %token <sval> IDENTIFIER
 %token <ival> INTEGER_VALUE
 %token <fval> FLOAT_VALUE
@@ -52,13 +52,8 @@ bool boolean_use = false;
 %token MOE
 %token DIFFERENT
 
-// %type of Terminals
-// %type <fval> expression term factor
+// %type of Non-Terminals
 %type <ival> type
-// %type <fval> exp;
-// %type <fval> simple_exp;
-// %type <fval> term;
-// %type <fval> factor;
 %type <symp> exp;
 %type <symp> simple_exp;
 %type <symp> term;
@@ -252,13 +247,22 @@ int main(int argc, char** argv){
 }
 
 /* Error & Warning Functions */
+/**
+ * @brief Critical error. This function will print a minor error found and will STOP the compilation.
+ * 
+ * @param input_Message 
+ */
 void yyerrorCritical(char const * input_Message){
 	// yylineno++;
 	fprintf(stderr, "CRITICAL ERROR: in line %d: %s\n", yylineno,/* line_num, */ input_Message);
 	printf("Stopping Compilation...\n");
 	exit(EXIT_FAILURE);
 }
-
+/**
+ * @brief Minor error. This function will print a minor error found and will CONTINUE the compilation.
+ * 
+ * @param input_Message 
+ */
 void yyerror(char const * input_Message){
 	fprintf(stderr, "ERROR: in line %d: %s\n", yylineno, input_Message);
 }
@@ -358,7 +362,9 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.INTEGER_VALUE_SAVED;
+				if(arg2->num_value.INTEGER_VALUE_SAVED == 0) {
+				 warning("Division by zero");
+				} else result->num_value.INTEGER_VALUE_SAVED = arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 
 			default:
@@ -379,7 +385,9 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
+				if(arg2->num_value.FLOAT_VALUE_SAVED == 0.0) {
+				 warning("Division by zero");
+				} else result->num_value.FLOAT_VALUE_SAVED = (float)arg1->num_value.INTEGER_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 
 			default:
@@ -400,7 +408,9 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / (float)arg2->num_value.INTEGER_VALUE_SAVED;
+				if(arg2->num_value.INTEGER_VALUE_SAVED == 0) {
+				 warning("Division by zero");
+				} else result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / (float)arg2->num_value.INTEGER_VALUE_SAVED;
 				break;
 
 			default:
@@ -420,9 +430,10 @@ void equivalenceTest(int op, symtab_node_p arg1, symtab_node_p arg2, symtab_node
 				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED * arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
 			case OP_DIV:
-				result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
+				if(arg2->num_value.FLOAT_VALUE_SAVED == 0.0) {
+				 warning("Division by zero");
+				} else result->num_value.FLOAT_VALUE_SAVED = arg1->num_value.FLOAT_VALUE_SAVED / arg2->num_value.FLOAT_VALUE_SAVED;
 				break;
-
 			default:
 				yyerrorCritical("Integer x Float failed ?");
 				break;
