@@ -261,7 +261,7 @@ void yyerrorCritical(char const * input_Message){
 /**
  * @brief Minor error. This function will print a minor error found and will CONTINUE the compilation.
  * 
- * @param input_Message 
+ * @param input_Message change commit
  */
 void yyerror(char const * input_Message){
 	fprintf(stderr, "ERROR: in line %d: %s\n", yylineno, input_Message);
