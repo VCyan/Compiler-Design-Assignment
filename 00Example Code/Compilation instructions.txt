@@ -1,0 +1,6 @@
+1. bison -v calc.y
+2. flex calc.l
+3. gcc -O2 -o calc -DYACC calc.tab.c -ll
+4. ./calc
+
+To exit the calculator press control D (end of file)
